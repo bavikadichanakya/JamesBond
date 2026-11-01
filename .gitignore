@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest cache
+.pytest_cache/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Desktop / Tauri build outputs
+src-tauri/target/
+node_modules/
+dist/
+
+# Large binaries & model weights
+*.onnx
+*.bin
+*.pt
+*.safetensors
+*.log
+
+# Upstream downloaded source repositories
+# (Kept intact on local disk at A:\Mixer, untracked from Git)
+/openclaw-main/
+/hermes-agent-main/
+/muse-gadget-sdk-main/

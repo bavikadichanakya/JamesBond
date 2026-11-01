@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS — Autonomous System & Capability Interface</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/static/css/styles.css?v=5.1.2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="jarvis-theme">
+  <div class="hud-grid-overlay"></div>
+
+  <div class="app-layout">
+    <!-- Compact Tactical Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="reactor-icon">
+          <div class="reactor-ring"></div>
+          <div class="reactor-core"></div>
+        </div>
+        <div class="brand-block">
+          <span class="system-code">MARK-V // NEXUS</span>
+          <h1 class="brand-title">J.A.R.V.I.S.</h1>
+        </div>
+      </div>
+
+      <button id="btnNewChat" class="btn-tactical-new">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        INITIALIZE NEW SESSION
+      </button>
+
+      <div class="nav-label">CONVERSATION LOGS</div>
+      <div id="sessionList" class="session-scroll-area">
+        <!-- Sessions populated via API -->
+      </div>
+
+      <!-- Honest Capability-Level Status Dashboard -->
+      <div class="integration-hud">
+        <div class="nav-label">CAPABILITY STATUS</div>
+        <div id="adapterStatusList" class="adapter-status-list">
+          <div class="subsystem-row">
+            <span class="subsystem-name">Local System Operations</span>
+            <span class="status-badge badge-live">LIVE</span>
+          </div>
+          <div class="subsystem-row">
+            <span class="subsystem-name">Hermes Skill Discovery</span>
+            <span class="status-badge badge-live">LIVE</span>
+          </div>
+          <div class="subsystem-row">
+            <span class="subsystem-name">Hermes Memory</span>
+            <span class="status-badge badge-simulated">SIMULATED</span>
+          </div>
+          <div class="subsystem-row">
+            <span class="subsystem-name">Hermes Subagents</span>
+            <span class="status-badge badge-simulated">SIMULATED</span>
+          </div>
+          <div class="subsystem-row">
+            <span class="subsystem-name">Muse Skill Catalog</span>
+            <span class="status-badge badge-live">LIVE</span>
+          </div>
+          <div class="subsystem-row">
+            <span class="subsystem-name">Muse Device Control</span>
+            <span class="status-badge badge-unavailable">UNAVAILABLE</span>
+          </div>
+          <div class="subsystem-row">
+            <span class="subsystem-name">OpenClaw Gateway</span>
+            <span class="status-badge badge-simulated">SIMULATED</span>
+          </div>
+        </div>
+
+        <div class="system-telemetry-box">
+          <div class="telemetry-item">
+            <span class="telem-label">MODEL</span>
+            <span class="telem-val">qwen2.5-coder:3b</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telem-label">RUNTIME</span>
+            <span class="telem-val">Ollama Local</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-stage">
+      <!-- Top Tactical HUD Bar -->
+      <header class="hud-topbar">
+        <div class="hud-left">
+          <span class="protocol-tag">PROTOCOL: RECEPTIVE</span>
+          <h2 id="currentChatTitle" class="session-title">Main Control Buffer</h2>
+        </div>
+        <div class="hud-right">
+          <div class="hud-pill" id="hudEngineStatus">
+            <span class="pulse-dot"></span>
+            <span>CORE READY</span>
+          </div>
+          <div class="hud-pill" id="hudVoiceStatus">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+            <span id="voiceStatusText">AUDIO INPUT READY</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Center Voice Interaction Hub: Luminous Animated Orb -->
+      <section class="orb-stage">
+        <div id="jarvisOrb" class="jarvis-orb state-idle" title="Click to Toggle Voice Input">
+          <div class="orb-outer-ring"></div>
+          <div class="orb-orbital-track"></div>
+          <div class="orb-energy-pulse"></div>
+          <div class="orb-core">
+            <div class="core-flare"></div>
+          </div>
+        </div>
+        <div class="orb-caption">
+          <div id="orbStateLabel" class="orb-state-label">STANDBY // READY</div>
+          <div id="orbSubtext" class="orb-subtext">Click the orb or press microphone to speak</div>
+        </div>
+
+        <!-- Speaking Bar with Reactive Soundwave -->
+        <div id="speakingBanner" class="jarvis-soundwave-banner" style="display: none;">
+          <div class="waveform-meter">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <span class="waveform-label">TRANSMITTING AUDIO SYNTHESIS</span>
+          <button id="btnStopSpeaking" class="btn-stop-audio">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="6" width="12" height="12"></rect>
+            </svg>
+            HALT SPEECH
+          </button>
+        </div>
+      </section>
+
+      <!-- Message History Stream -->
+      <section id="chatContainer" class="chat-stream">
+        <div class="welcome-hud-card">
+          <div class="hud-card-corner top-left"></div>
+          <div class="hud-card-corner top-right"></div>
+          <div class="hud-card-corner bottom-left"></div>
+          <div class="hud-card-corner bottom-right"></div>
+          
+          <div class="welcome-header">
+            <span class="welcome-glitch">NEXUS COGNITIVE SYSTEM</span>
+            <h3>At your service, sir.</h3>
+          </div>
+          <p>I am online and calibrated. All integrated subsystems—Local OS capabilities, OpenClaw communication, Hermes cognitive skills, and Muse device automation—are ready for voice and text dispatch.</p>
+          
+          <div class="quick-command-grid">
+            <button class="command-chip" onclick="sendQuickPrompt('Open YouTube')">
+              <span class="chip-cmd">NAVIGATE</span>
+              <span class="chip-label">Open YouTube</span>
+            </button>
+            <button class="command-chip" onclick="sendQuickPrompt('What time is it?')">
+              <span class="chip-cmd">CHRONO</span>
+              <span class="chip-label">What time is it?</span>
+            </button>
+            <button class="command-chip" onclick="sendQuickPrompt('Check my system memory')">
+              <span class="chip-cmd">TELEMETRY</span>
+              <span class="chip-label">System Memory</span>
+            </button>
+            <button class="command-chip" onclick="sendQuickPrompt('Open Chrome')">
+              <span class="chip-cmd">EXECUTE</span>
+              <span class="chip-label">Open Chrome</span>
+            </button>
+            <button class="command-chip" onclick="sendQuickPrompt('Open my Downloads folder')">
+              <span class="chip-cmd">EXPLORER</span>
+              <span class="chip-label">Downloads Folder</span>
+            </button>
+            <button class="command-chip" onclick="sendQuickPrompt('Check my smart devices')">
+              <span class="chip-cmd">IOT</span>
+              <span class="chip-label">Smart Devices</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Real-time Activity Indicator Banner -->
+      <div id="activityBanner" class="jarvis-activity-banner" style="display: none;">
+        <div class="scanning-laser"></div>
+        <div class="activity-info">
+          <div class="spinner-hexagon"></div>
+          <span id="activityText" class="activity-text">PROCESSING INCOMING COMMAND...</span>
+        </div>
+      </div>
+
+      <!-- Tactical Input Panel -->
+      <footer class="tactical-input-bar">
+        <div class="input-hull">
+          <button id="btnMic" class="btn-voice-toggle" title="Push to talk (Speech Recognition)">
+            <svg id="micIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </button>
+
+          <textarea id="txtPrompt" class="console-input" placeholder="Transmit a natural-language directive or tap mic to dictate..." rows="1"></textarea>
+
+          <button id="btnSend" class="btn-transmit" title="Send Directive">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Tactical Confirmation Approval Modal -->
+  <div id="approvalModal" class="modal-backdrop" style="display: none;">
+    <div class="tactical-modal-card">
+      <div class="modal-alert-stripe"></div>
+      <div class="modal-header">
+        <div class="modal-hazard-icon">⚠️</div>
+        <div class="modal-header-text">
+          <span class="alert-code">SECURITY LEVEL // CONFIRMATION REQUIRED</span>
+          <h4>AUTHORIZATION REQUIRED</h4>
+        </div>
+      </div>
+      <p class="modal-desc">A state-altering system directive has been intercepted and requires user authentication:</p>
+      
+      <div class="modal-details-hud">
+        <div class="detail-row">
+          <span class="detail-label">DIRECTIVE / TOOL:</span>
+          <span id="modalToolName" class="detail-val mono">system_action</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">PAYLOAD ARGUMENTS:</span>
+          <pre id="modalArgs">{}</pre>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnDenyAction" class="btn-hud btn-abort">ABORT (DENY)</button>
+        <button id="btnApproveAction" class="btn-hud btn-authorize">AUTHORIZE & EXECUTE</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js?v=5.1.2"></script>
+</body>
+</html>

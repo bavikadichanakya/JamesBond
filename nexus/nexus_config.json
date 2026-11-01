@@ -1,0 +1,19 @@
+{
+  "ollama_endpoint": "http://localhost:11434",
+  "model_name": "qwen2.5-coder:3b",
+  "model_request_timeout": 120.0,
+  "default_tool_timeout": 10.0,
+  "max_tool_rounds": 5,
+  "allow_privileged_execution": false,
+  "redact_sensitive_patterns": [
+    "password",
+    "secret",
+    "token",
+    "api_key",
+    "authorization",
+    "bearer",
+    "private_key"
+  ],
+  "workspace_root": "A:\\Mixer"
+}
+
