@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "NEXUS",
+  "version": "1.0.0",
+  "identifier": "ai.nexus.assistant",
+  "build": {
+    "frontendDist": "../nexus/ui/templates",
+    "devUrl": "http://127.0.0.1:5000"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "NEXUS — Autonomous System & Capability Interface",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 650,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
