@@ -151,3 +151,4 @@ All 79 automated tests across all test suites passed:
 1. Install Microsoft Visual Studio 2022 C++ Build Tools with the Windows 11 SDK using the provided command.
 2. Run `cargo check` in `A:\Mixer\src-tauri` to confirm `link.exe` detection.
 3. Launch `npx @tauri-apps/cli dev` to display the standalone native J.A.R.V.I.S. window.
+

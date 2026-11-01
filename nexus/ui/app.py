@@ -59,7 +59,7 @@ def interactive_web_approval_callback(req: ToolApprovalRequest) -> ToolApprovalD
         "arguments": req.arguments,
         "permission_level": req.permission_level.value,
         "source": req.source,
-        "requested_at": req.requested_at,
+        "requested_at": getattr(req, "timestamp", ""),
     }
 
     logger.info("Awaiting user approval for action '%s' (req_id=%s)", req.tool_name, request_id)
@@ -444,7 +444,7 @@ def create_app(config: Optional[NexusConfig] = None) -> Flask:
     def submit_permission_decision():
         """Submit user approval or denial for a pending tool confirmation."""
         data = request.get_json() or {}
-        request_id = data.get("execution_id")
+        request_id = data.get("execution_id") or data.get("request_id")
         approved = bool(data.get("approved", False))
         reason = data.get("reason", "Interactive user confirmation via NEXUS UI")
 

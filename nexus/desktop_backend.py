@@ -172,17 +172,25 @@ class DesktopBackendSupervisor:
         try:
             if sys.platform == "win32":
                 import ctypes
+                from ctypes import wintypes
+
                 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
-                SYNCHRONIZE = 0x00100000
                 handle = ctypes.windll.kernel32.OpenProcess(
-                    PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE,
+                    PROCESS_QUERY_LIMITED_INFORMATION,
                     False,
                     pid,
                 )
                 if not handle:
                     return False
+                exit_code = wintypes.DWORD()
+                STILL_ACTIVE = 259
+                success = ctypes.windll.kernel32.GetExitCodeProcess(
+                    handle, ctypes.byref(exit_code)
+                )
                 ctypes.windll.kernel32.CloseHandle(handle)
-                return True
+                if not success:
+                    return False
+                return exit_code.value == STILL_ACTIVE
             else:
                 os.kill(pid, 0)
                 return True
@@ -333,3 +341,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -9,7 +9,7 @@ use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use tauri::{AppHandle, Manager, RunEvent, WindowEvent};
+use tauri::{RunEvent, WindowEvent};
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -52,11 +52,7 @@ fn send_authenticated_shutdown(port: u16, auth_token: &str) {
     let addr = format!("127.0.0.1:{}", port);
     if let Ok(mut stream) = TcpStream::connect(&addr) {
         let request = format!(
-            "POST /api/system/shutdown HTTP/1.1\r\n\
-             Host: 127.0.0.1:{}\r\n\
-             X-Nexus-Auth-Token: {}\r\n\
-             Content-Length: 0\r\n\
-             Connection: close\r\n\r\n",
+            "POST /api/system/shutdown HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nX-Nexus-Auth-Token: {}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
             port, auth_token
         );
         let _ = std::io::Write::write_all(&mut stream, request.as_bytes());
@@ -157,6 +153,10 @@ pub fn run() {
             if let WindowEvent::CloseRequested { .. } = event {
                 log::info!("[NEXUS Desktop] Window close requested. Shutting down managed backend...");
                 let mut state = state_for_exit.lock().unwrap();
+                if state.auth_token.is_none() {
+                    let workspace = find_workspace_root();
+                    state.auth_token = load_instance_token(&workspace);
+                }
                 if let Some(token) = &state.auth_token {
                     send_authenticated_shutdown(state.port, token);
                 }
