@@ -5,11 +5,11 @@ use std::fs;
 use std::io::Read;
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use tauri::{RunEvent, WindowEvent};
+use tauri::{Manager, RunEvent, WindowEvent};
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -102,6 +102,11 @@ pub fn run() {
                 let token = load_instance_token(&workspace);
                 let mut state = state_for_setup.lock().unwrap();
                 state.auth_token = token;
+                if let Some(main_win) = _app.get_webview_window("main") {
+                    if let Ok(url) = format!("http://127.0.0.1:{}", port).parse() {
+                        let _ = main_win.navigate(url);
+                    }
+                }
                 return Ok(());
             }
 
@@ -117,7 +122,9 @@ pub fn run() {
                 .arg(port.to_string())
                 .arg("--parent-pid")
                 .arg(current_pid.to_string())
-                .current_dir(&workspace);
+                .current_dir(&workspace)
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped());
 
             #[cfg(windows)]
             {
@@ -138,6 +145,14 @@ pub fn run() {
                         let token = load_instance_token(&workspace);
                         let mut state = state_for_setup.lock().unwrap();
                         state.auth_token = token;
+
+                        // Navigate main WebView2 window to the now-ready backend
+                        if let Some(main_win) = _app.get_webview_window("main") {
+                            log::info!("[NEXUS Desktop] Navigating main window to http://127.0.0.1:{}", port);
+                            if let Ok(url) = format!("http://127.0.0.1:{}", port).parse() {
+                                let _ = main_win.navigate(url);
+                            }
+                        }
                     } else {
                         log::error!("[NEXUS Desktop] Timed out waiting for backend readiness on port {}", port);
                     }

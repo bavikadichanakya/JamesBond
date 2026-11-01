@@ -32,7 +32,7 @@ dist/
 *.log
 *.exe
 .nexus_desktop_instance.json
-nexus_native_window.png
+nexus_native_*.png
 
 # Upstream downloaded source repositories
 # (Kept intact on local disk at A:\Mixer, untracked from Git)

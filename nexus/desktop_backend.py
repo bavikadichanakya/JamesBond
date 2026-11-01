@@ -136,6 +136,20 @@ class DesktopBackendSupervisor:
             with open(self.instance_file_path, "w", encoding="utf-8") as f:
                 json.dump(meta, f, indent=2)
             self.logger.info("Instance metadata saved to %s", self.instance_file_path)
+
+            # Restrict Windows ACLs so only the current user has access
+            if sys.platform == "win32":
+                try:
+                    import subprocess
+                    user = os.environ.get("USERNAME", "")
+                    if user:
+                        subprocess.run(
+                            ["icacls", str(self.instance_file_path), "/inheritance:r", "/grant:r", f"{user}:(R,W)"],
+                            capture_output=True,
+                            check=False,
+                        )
+                except Exception as acl_exc:
+                    self.logger.warning("Could not restrict file ACLs: %s", acl_exc)
         except Exception as exc:
             self.logger.error("Failed to write instance metadata: %s", exc)
 
@@ -292,7 +306,10 @@ class DesktopBackendSupervisor:
         )
 
         # Print ready signal to stdout for desktop shell consumption
-        print(f"NEXUS_BACKEND_READY:{self.instance_id}:{self.host}:{self.port}:{self.auth_token}", flush=True)
+        try:
+            print(f"NEXUS_BACKEND_READY:{self.instance_id}:{self.host}:{self.port}:{self.auth_token}", flush=True)
+        except OSError:
+            pass
 
         if block:
             app.run(host=self.host, port=self.port, debug=False, use_reloader=False)

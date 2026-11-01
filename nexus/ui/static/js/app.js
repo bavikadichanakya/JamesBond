@@ -567,6 +567,36 @@ function stopSpeaking() {
 // Tactical Confirmation Modal
 // -----------------------------------------------------------------------------
 
+let activeApprovalExecutionId = null;
+
+async function checkPendingApprovals() {
+  try {
+    const res = await fetch("/api/status");
+    if (!res.ok) return;
+    const data = await res.json();
+    const pending = data.pending_approvals || [];
+    const modal = document.getElementById("approvalModal");
+    if (pending.length > 0) {
+      const appReq = pending[0];
+      activeApprovalExecutionId = appReq.execution_id;
+      const nameEl = document.getElementById("modalToolName");
+      const argsEl = document.getElementById("modalArgs");
+      if (nameEl) nameEl.textContent = appReq.tool_name;
+      if (argsEl) argsEl.textContent = JSON.stringify(appReq.arguments || {}, null, 2);
+      if (modal && modal.style.display === "none") {
+        modal.style.display = "flex";
+      }
+    } else if (modal && modal.style.display !== "none" && !pendingApprovalResolver) {
+      modal.style.display = "none";
+      activeApprovalExecutionId = null;
+    }
+  } catch (e) {
+    // Non-blocking telemetry poll
+  }
+}
+
+setInterval(checkPendingApprovals, 600);
+
 function requestUserApproval(toolName, args) {
   return new Promise((resolve) => {
     const modal = document.getElementById("approvalModal");
@@ -581,9 +611,27 @@ function requestUserApproval(toolName, args) {
   });
 }
 
-function resolveApproval(isApproved) {
+async function resolveApproval(isApproved) {
   const modal = document.getElementById("approvalModal");
   if (modal) modal.style.display = "none";
+
+  if (activeApprovalExecutionId) {
+    const execId = activeApprovalExecutionId;
+    activeApprovalExecutionId = null;
+    try {
+      await fetch("/api/permission/decision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          execution_id: execId,
+          approved: isApproved,
+        }),
+      });
+    } catch (e) {
+      console.error("Failed to submit approval decision:", e);
+    }
+  }
+
   if (pendingApprovalResolver) {
     pendingApprovalResolver(isApproved);
     pendingApprovalResolver = null;
